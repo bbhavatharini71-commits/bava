@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nexus — Tasks, Schedule & Links</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #7b73ff;
+  --accent-glow: rgba(123,115,255,0.3);
+  --bg: #0d0d18;
+  --surface: #14142a;
+  --surface2: #1c1c35;
+  --border: rgba(255,255,255,0.07);
+  --text: #e8e8f0;
+  --muted: #7070a0;
+  --danger: #ff5f6d;
+  --success: #3bcfb4;
+  --warn: #ffb347;
+  --radius: 14px;
+  --font-main: 'Syne', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+body.t2{--accent:#ff836b;--accent-glow:rgba(255,131,107,0.3);--bg:#160f0f;--surface:#201414;--surface2:#2a1b1b}
+body.t3{--accent:#3bcfb4;--accent-glow:rgba(59,207,180,0.3);--bg:#0b1614;--surface:#111f1c;--surface2:#182b27}
+body.t4{--accent:#bb7bff;--accent-glow:rgba(187,123,255,0.3);--bg:#130f1a;--surface:#1a1325;--surface2:#221a30}
+body.t5{--accent:#ffb347;--accent-glow:rgba(255,179,71,0.3);--bg:#16130b;--surface:#201c10;--surface2:#2a2515}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-main);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 60% 40% at 20% 20%,var(--accent-glow) 0%,transparent 60%),
+             radial-gradient(ellipse 40% 50% at 80% 80%,var(--accent-glow) 0%,transparent 60%);
+  pointer-events:none;z-index:0;opacity:0.6;
+  animation:meshMove 12s ease-in-out infinite alternate;
+}
+@keyframes meshMove{0%{transform:scale(1) rotate(0deg)}100%{transform:scale(1.1) rotate(3deg)}}
+
+/* ── Header ── */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(13,13,24,0.88);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:62px;
+}
+.logo{font-size:1.3rem;font-weight:800;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--accent),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+nav{display:flex;gap:6px}
+nav a{color:var(--muted);text-decoration:none;font-weight:600;font-size:0.85rem;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;letter-spacing:0.02em}
+nav a.active{background:var(--accent);color:#fff;box-shadow:0 0 20px var(--accent-glow)}
+nav a:hover:not(.active){background:var(--surface2);color:var(--text)}
+.theme-strip{display:flex;gap:8px;align-items:center}
+.tdot{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.2s,border-color 0.2s}
+.tdot:hover,.tdot.sel{transform:scale(1.3);border-color:white}
+.tdot.c1{background:#7b73ff}.tdot.c2{background:#ff836b}.tdot.c3{background:#3bcfb4}.tdot.c4{background:#bb7bff}.tdot.c5{background:#ffb347}
+
+main{max-width:700px;margin:0 auto;padding:32px 20px 80px;position:relative;z-index:1}
+.page{display:none;animation:fadeUp 0.3s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+h1{font-size:2rem;font-weight:800;letter-spacing:-0.04em;margin-bottom:28px;background:linear-gradient(135deg,var(--accent),var(--text));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+/* ── Inputs ── */
+.input-row{display:flex;gap:8px;margin-bottom:20px}
+.inp{padding:12px 16px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font-main);font-size:0.95rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;width:100%}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.inp::placeholder{color:var(--muted)}
+select.inp{cursor:pointer}
+select.inp option{background:var(--bg)}
+.btn{padding:12px 22px;background:var(--accent);border:none;border-radius:var(--radius);color:#fff;font-family:var(--font-main);font-weight:700;font-size:0.9rem;cursor:pointer;white-space:nowrap;transition:transform 0.15s,box-shadow 0.2s;box-shadow:0 4px 14px var(--accent-glow)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--accent-glow)}
+.btn:active{transform:translateY(0)}
+.btn-danger{background:var(--danger);box-shadow:none}
+.btn-danger:hover{box-shadow:0 6px 20px rgba(255,95,109,0.4)}
+
+/* ── Filters ── */
+.filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.fbtn{background:var(--surface2);color:var(--muted);border:1px solid var(--border);padding:6px 16px;border-radius:100px;font-family:var(--font-main);font-weight:600;font-size:0.82rem;cursor:pointer;transition:all 0.2s}
+.fbtn.active,.fbtn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── Stats ── */
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;text-align:center}
+.stat-num{font-size:1.8rem;font-weight:800;color:var(--accent);letter-spacing:-0.04em}
+.stat-label{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-top:2px}
+
+/* ── Task list ── */
+.task-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.task-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:transform 0.2s,box-shadow 0.2s;animation:slideIn 0.25s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.task-item:hover{transform:translateX(3px);box-shadow:0 4px 16px rgba(0,0,0,0.3)}
+.task-item.done{opacity:0.55}
+.task-item.done .task-text{text-decoration:line-through}
+.check-btn{width:22px;height:22px;min-width:22px;border-radius:6px;border:2px solid var(--muted);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;font-size:0.75rem;color:#fff}
+.check-btn.checked{background:var(--success);border-color:var(--success)}
+.check-btn:hover{border-color:var(--accent)}
+.task-body{flex:1;min-width:0}
+.task-text{font-weight:600;font-size:0.95rem;word-break:break-word}
+.task-meta{font-size:0.75rem;color:var(--muted);margin-top:3px;font-family:var(--font-mono)}
+.prio-badge{font-family:var(--font-mono);font-size:0.7rem;padding:2px 8px;border-radius:100px;font-weight:500;white-space:nowrap}
+.p-low{background:rgba(59,207,180,0.15);color:var(--success)}
+.p-mid{background:rgba(255,179,71,0.15);color:var(--warn)}
+.p-high{background:rgba(255,95,109,0.15);color:var(--danger)}
+.del-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:4px 6px;border-radius:6px;transition:all 0.2s}
+.del-btn:hover{color:var(--danger);background:rgba(255,95,109,0.1)}
+
+/* ── Schedule ── */
+.sched-form{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.sched-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.schedule-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.sched-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;justify-content:space-between;align-items:flex-start;animation:slideIn 0.25s ease;transition:transform 0.2s}
+.sched-item:hover{transform:translateX(3px)}
+.sched-title{font-weight:700;font-size:1rem;margin-bottom:6px}
+.sched-date{display:inline-block;font-family:var(--font-mono);font-size:0.75rem;background:var(--accent-glow);color:var(--accent);padding:2px 10px;border-radius:100px;margin-right:6px}
+.sched-time{display:inline-block;font-family:var(--font-mono);font-size:0.75rem;background:rgba(255,255,255,0.05);color:var(--muted);padding:2px 10px;border-radius:100px}
+.sched-notes{font-size:0.85rem;color:var(--muted);margin-top:6px}
+
+/* ── Links ── */
+.link-grid-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.links-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.link-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:8px;animation:slideIn 0.25s ease;position:relative;overflow:hidden}
+.link-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);opacity:0;transition:opacity 0.2s}
+.link-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,0.4);border-color:var(--accent)}
+.link-card:hover::before{opacity:1}
+.link-favicon{width:28px;height:28px;border-radius:8px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:1rem;overflow:hidden}
+.link-favicon img{width:100%;height:100%;object-fit:contain;border-radius:6px}
+.link-name{font-weight:700;font-size:0.92rem}
+.link-url-text{font-size:0.72rem;color:var(--muted);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.link-cat-badge{font-family:var(--font-mono);font-size:0.68rem;padding:2px 8px;border-radius:100px;background:var(--accent-glow);color:var(--accent);width:fit-content}
+.link-del{position:absolute;top:8px;right:8px;background:transparent;border:none;color:var(--muted);font-size:1rem;cursor:pointer;border-radius:6px;padding:2px 5px;opacity:0;transition:opacity 0.2s,color 0.2s}
+.link-card:hover .link-del{opacity:1}
+.link-del:hover{color:var(--danger)!important}
+
+/* ── Empty state ── */
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted);font-size:0.9rem}
+.empty-state .emoji{font-size:2.5rem;display:block;margin-bottom:12px}
+
+/* ════════════════════════════════════
+   LOGIN PAGE — NOTEBOOK DESIGN
+   ════════════════════════════════════ */
+#login{position:relative;overflow:hidden;min-height:calc(100vh - 80px)}
+
+/* Floating notebooks */
+.nb-scene{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.notebook{position:absolute;border-radius:10px;opacity:0.12;animation:floatBook linear infinite}
+@keyframes floatBook{
+  0%  {transform:translateY(0px) rotate(var(--r)) scale(1)}
+  30% {transform:translateY(-22px) rotate(calc(var(--r) + 4deg)) scale(1.02)}
+  60% {transform:translateY(8px) rotate(calc(var(--r) - 3deg)) scale(0.98)}
+  100%{transform:translateY(0px) rotate(var(--r)) scale(1)}
+}
+/* each notebook is an SVG drawn in JS */
+
+.login-wrap{position:relative;z-index:2;max-width:380px;margin:40px auto 0}
+.login-card{
+  background:rgba(20,20,42,0.82);
+  backdrop-filter:blur(30px);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:22px;
+  padding:40px 36px 36px;
+  box-shadow:0 24px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(123,115,255,0.1);
+}
+.login-logo{text-align:center;margin-bottom:30px}
+.login-logo .icon{font-size:2.5rem;display:block;margin-bottom:8px;filter:drop-shadow(0 0 12px var(--accent))}
+.login-logo h2{font-size:1.5rem;font-weight:800;letter-spacing:-0.04em;background:linear-gradient(135deg,var(--accent),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-logo p{font-size:0.82rem;color:var(--muted);margin-top:4px}
+
+.login-field{margin-bottom:18px}
+.login-field label{display:block;font-weight:700;font-size:0.78rem;margin-bottom:8px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase}
+.login-field input{
+  width:100%;padding:14px 16px;
+  background:rgba(255,255,255,0.05);
+  color:var(--text);border:1.5px solid rgba(255,255,255,0.1);
+  border-radius:12px;font-family:var(--font-main);font-size:1rem;outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s,background 0.2s;
+}
+.login-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);background:rgba(123,115,255,0.07)}
+.login-field input::placeholder{color:var(--muted)}
+
+.login-hint{font-size:0.75rem;color:var(--muted);font-family:var(--font-mono);margin-bottom:22px;text-align:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border)}
+
+.login-btn-full{
+  width:100%;padding:15px;background:var(--accent);color:#fff;
+  border:none;border-radius:12px;font-family:var(--font-main);
+  font-size:1rem;font-weight:800;cursor:pointer;
+  transition:transform 0.15s,box-shadow 0.2s;
+  box-shadow:0 4px 24px var(--accent-glow);
+  letter-spacing:0.02em;
+}
+.login-btn-full:hover{transform:translateY(-2px);box-shadow:0 8px 32px var(--accent-glow)}
+.login-btn-full:active{transform:translateY(0)}
+.login-btn-full:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+
+.login-err{color:var(--danger);font-size:0.87rem;margin-top:14px;display:none;text-align:center;padding:10px;background:rgba(255,95,109,0.08);border-radius:8px;border:1px solid rgba(255,95,109,0.2)}
+
+.logged-in-card{
+  background:rgba(20,20,42,0.82);backdrop-filter:blur(30px);
+  border:1px solid rgba(59,207,180,0.2);border-radius:22px;
+  padding:36px;text-align:center;
+  box-shadow:0 24px 80px rgba(0,0,0,0.6);display:none;
+}
+.logged-in-card .avatar{font-size:3rem;margin-bottom:14px;filter:drop-shadow(0 0 16px var(--success))}
+.logged-in-card h3{font-size:1.4rem;font-weight:800;margin-bottom:4px}
+.logged-in-card p{color:var(--muted);font-size:0.88rem;margin-bottom:24px}
+
+/* ── Success Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(8px);z-index:9000;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.3s;
+}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal-box{
+  background:var(--surface);border:1px solid rgba(123,115,255,0.3);
+  border-radius:24px;padding:48px 40px;text-align:center;
+  max-width:340px;width:90%;
+  transform:scale(0.85) translateY(20px);
+  transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 32px 80px rgba(0,0,0,0.8),0 0 60px var(--accent-glow);
+}
+.modal-overlay.show .modal-box{transform:scale(1) translateY(0)}
+.modal-check{
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,var(--success),#2df0d2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;margin:0 auto 20px;
+  box-shadow:0 0 40px rgba(59,207,180,0.5);
+  animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-box h2{font-size:1.6rem;font-weight:800;letter-spacing:-0.04em;margin-bottom:8px}
+.modal-box p{color:var(--muted);font-size:0.9rem;margin-bottom:6px}
+.modal-user{color:var(--accent);font-weight:700;font-size:1.1rem;margin-bottom:24px}
+.modal-progress{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-bottom:20px}
+.modal-progress-bar{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 2.2s linear}
+.modal-redirect{font-size:0.78rem;color:var(--muted);font-family:var(--font-mono)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:28px;right:24px;background:var(--surface);border:1px solid var(--accent);color:var(--text);padding:12px 20px;border-radius:var(--radius);font-size:0.88rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,0.5);transform:translateY(80px);opacity:0;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);z-index:9999}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+</style>
+</head>
+<body class="t1">
+
+<header>
+  <div class="logo">◈ Nexus</div>
+  <nav>
+    <a class="nav-link" data-page="login">Login</a>
+    <a class="nav-link" data-page="home">Tasks</a>
+    <a class="nav-link" data-page="schedule">Schedule</a>
+    <a class="nav-link" data-page="links">Links</a>
+  </nav>
+  <div class="theme-strip">
+    <div class="tdot c1 sel" data-t="t1"></div>
+    <div class="tdot c2" data-t="t2"></div>
+    <div class="tdot c3" data-t="t3"></div>
+    <div class="tdot c4" data-t="t4"></div>
+    <div class="tdot c5" data-t="t5"></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── LOGIN PAGE ── -->
+  <section id="login" class="page active">
+    <!-- Floating notebooks injected by JS -->
+    <div class="nb-scene" id="nb-scene"></div>
+
+    <div class="login-wrap">
+
+      <!-- Already logged in state -->
+      <div class="logged-in-card" id="logged-in-card">
+        <div class="avatar">📓</div>
+        <h3 id="li-name">Welcome back!</h3>
+        <p>You are signed in to Nexus</p>
+        <button class="btn" style="width:100%;margin-bottom:12px" onclick="goToTasks()">Go to My Tasks →</button>
+        <button class="btn btn-danger" style="width:100%" onclick="doLogout()">Sign Out</button>
+      </div>
+
+      <!-- Login form -->
+      <div class="login-card" id="login-form-card">
+        <div class="login-logo">
+          <span class="icon">📓</span>
+          <h2>Welcome to Nexus</h2>
+          <p>Sign in to your workspace</p>
+        </div>
+        <div class="login-field">
+          <label>Username</label>
+          <input type="text" id="username" placeholder="Try: admin" autocomplete="username" />
+        </div>
+        <div class="login-field">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="Try: 1234" autocomplete="current-password" />
+        </div>
+        <div class="login-hint">🔑 Credentials → <strong>admin / 1234</strong> &nbsp;or&nbsp; <strong>demo / demo123</strong></div>
+        <button class="login-btn-full" id="login-btn">Sign In</button>
+        <div class="login-err" id="login-err">❌ Wrong username or password. Try again.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TASKS PAGE ── -->
+  <section id="home" class="page">
+    <h1>My Tasks</h1>
+    <div class="stats-bar" id="task-stats"></div>
+    <div class="input-row">
+      <input class="inp" type="text" id="task-input" placeholder="Add a new task…" style="flex:1" />
+      <select class="inp" id="priority-select" style="width:140px">
+        <option value="low">🟢 Low</option>
+        <option value="mid" selected>🟡 Medium</option>
+        <option value="high">🔴 High</option>
+      </select>
+      <button class="btn" id="task-add-btn">+ Add</button>
+    </div>
+    <div class="filters">
+      <button class="fbtn active" data-filter="all">All</button>
+      <button class="fbtn" data-filter="active">Active</button>
+      <button class="fbtn" data-filter="done">Completed</button>
+      <button class="fbtn" data-filter="high">🔴 Urgent</button>
+    </div>
+    <ul class="task-list" id="task-list"></ul>
+  </section>
+
+  <!-- ── SCHEDULE PAGE ── -->
+  <section id="schedule" class="page">
+    <h1>Schedule</h1>
+    <div class="sched-form">
+      <input class="inp" type="text" id="s-title" placeholder="Event title…" />
+      <div class="row2">
+        <input class="inp" type="date" id="s-date" />
+        <input class="inp" type="time" id="s-time" />
+      </div>
+      <textarea class="inp" id="s-notes" placeholder="Notes (optional)…" rows="2" style="resize:vertical"></textarea>
+      <button class="btn" id="sched-add-btn" style="align-self:flex-start">Add Event</button>
+    </div>
+    <ul class="schedule-list" id="schedule-list"></ul>
+  </section>
+
+  <!-- ── LINKS PAGE ── -->
+  <section id="links" class="page">
+    <h1>Bookmarks</h1>
+    <div style="margin-bottom:20px">
+      <div class="link-grid-inputs">
+        <input class="inp" type="text" id="link-name-input" placeholder="Name (e.g. GitHub)" />
+        <input class="inp" type="text" id="link-cat-input" placeholder="Category (e.g. Work)" />
+      </div>
+      <div class="input-row">
+        <input class="inp" type="url" id="link-url-input" placeholder="URL — https://…" style="flex:1" />
+        <button class="btn" id="link-add-btn">+ Add</button>
+      </div>
+    </div>
+    <div class="filters" id="cat-filter"></div>
+    <div class="links-grid" id="links-grid"></div>
+  </section>
+
+</main>
+
+<!-- ── SUCCESS MODAL ── -->
+<div class="modal-overlay" id="success-modal">
+  <div class="modal-box">
+    <div class="modal-check">✓</div>
+    <h2>You're in!</h2>
+    <p>Signed in as</p>
+    <div class="modal-user" id="modal-username">—</div>
+    <div class="modal-progress"><div class="modal-progress-bar" id="modal-bar"></div></div>
+    <div class="modal-redirect">Redirecting to Tasks…</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Helpers ──────────────────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const qs = s  => document.querySelector(s);
+const qsa= s  => [...document.querySelectorAll(s)];
+const esc= s  => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function ls(key, val){
+  if(val===undefined){ try{ return JSON.parse(localStorage.getItem(key))||[] }catch{ return [] } }
+  localStorage.setItem(key, JSON.stringify(val));
+}
+
+function toast(msg, dur=2500){
+  const t=$('toast'); t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'), dur);
+}
+
+// ─── Theme ────────────────────────────────────────────────────────────────
+const savedTheme = localStorage.getItem('nexus-theme')||'t1';
+document.body.className = savedTheme;
+qsa('.tdot').forEach(d=>{
+  d.classList.toggle('sel', d.dataset.t===savedTheme);
+  d.addEventListener('click',()=>{
+    document.body.className = d.dataset.t;
+    localStorage.setItem('nexus-theme', d.dataset.t);
+    qsa('.tdot').forEach(x=>x.classList.remove('sel'));
+    d.classList.add('sel');
+  });
+});
+
+// ─── Navigation ───────────────────────────────────────────────────────────
+function navigateTo(pageId){
+  qsa('.nav-link').forEach(l=>l.classList.toggle('active', l.dataset.page===pageId));
+  qsa('.page').forEach(p=>p.classList.toggle('active', p.id===pageId));
+}
+
+qsa('.nav-link').forEach(link=>{
+  link.addEventListener('click', e=>{ e.preventDefault(); navigateTo(link.dataset.page); });
+});
+
+// ─── Floating Notebooks ───────────────────────────────────────────────────
+function makeNotebook(x, y, w, h, rot, dur, delay, color){
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 100" width="${w}" height="${h}">
+    <rect x="8" y="2" width="64" height="96" rx="6" fill="${color}" opacity="0.9"/>
+    <rect x="8" y="2" width="14" height="96" rx="4" fill="rgba(0,0,0,0.25)"/>
+    <rect x="20" y="18" width="38" height="2.5" rx="1.5" fill="rgba(255,255,255,0.25)"/>
+    <rect x="20" y="26" width="32" height="2.5" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+    <rect x="20" y="34" width="36" height="2.5" rx="1.5" fill="rgba(255,255,255,0.18)"/>
+    <rect x="20" y="42" width="28" height="2.5" rx="1.5" fill="rgba(255,255,255,0.15)"/>
+    <rect x="20" y="50" width="34" height="2.5" rx="1.5" fill="rgba(255,255,255,0.13)"/>
+    <rect x="20" y="58" width="24" height="2.5" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+    <circle cx="15" cy="22" r="3" fill="rgba(255,255,255,0.4)"/>
+    <circle cx="15" cy="38" r="3" fill="rgba(255,255,255,0.4)"/>
+    <circle cx="15" cy="54" r="3" fill="rgba(255,255,255,0.4)"/>
+    <circle cx="15" cy="70" r="3" fill="rgba(255,255,255,0.4)"/>
+  </svg>`;
+  const div = document.createElement('div');
+  div.className = 'notebook';
+  div.style.cssText = `left:${x}%;top:${y}%;--r:${rot}deg;animation-duration:${dur}s;animation-delay:-${delay}s`;
+  div.innerHTML = svg;
+  return div;
+}
+
+const nbScene = $('nb-scene');
+const books = [
+  [5,  10, 70, 90,  -15, 7,  1, '#7b73ff'],
+  [75,  8, 55, 70,   12, 9,  3, '#bb7bff'],
+  [60, 60, 80,100,  -20, 8,  5, '#ff836b'],
+  [85, 45, 50, 63,   18, 6,  2, '#3bcfb4'],
+  [15, 65, 60, 75,  -10, 10, 4, '#ffb347'],
+  [40,  5, 45, 56,   25, 7,  6, '#7b73ff'],
+  [2,  40, 38, 48,   -8, 9,  0, '#3bcfb4'],
+  [88, 75, 42, 52,  -22, 8,  3, '#ff836b'],
+];
+books.forEach(b => nbScene.appendChild(makeNotebook(...b)));
+
+// ─── Login ────────────────────────────────────────────────────────────────
+const USERS = { admin:'1234', demo:'demo123' };
+let loggedInUser = localStorage.getItem('nexus-user') || null;
+
+function renderLoginState(){
+  if(loggedInUser){
+    $('login-form-card').style.display = 'none';
+    $('logged-in-card').style.display  = 'block';
+    $('li-name').textContent = 'Welcome back, '+loggedInUser+'!';
+  } else {
+    $('login-form-card').style.display = 'block';
+    $('logged-in-card').style.display  = 'none';
+  }
+}
+
+function showSuccessModal(username, onDone){
+  $('modal-username').textContent = username;
+  const overlay = $('success-modal');
+  const bar     = $('modal-bar');
+  overlay.classList.add('show');
+  // animate progress bar
+  requestAnimationFrame(()=>{ bar.style.width='100%'; });
+  // after 2.5s close and redirect
+  setTimeout(()=>{
+    overlay.classList.remove('show');
+    bar.style.transition='none'; bar.style.width='0%';
+    setTimeout(()=>{ bar.style.transition='width 2.2s linear'; }, 50);
+    if(onDone) onDone();
+  }, 2500);
+}
+
+function doLogin(){
+  const user = $('username').value.trim();
+  const pass = $('password').value;
+  const btn  = $('login-btn');
+
+  if(!user || !pass){ toast('Please fill in both fields'); return; }
+
+  // Tiny shimmer effect on button
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  setTimeout(()=>{
+    if(USERS[user] && USERS[user]===pass){
+      loggedInUser = user;
+      localStorage.setItem('nexus-user', user);
+      $('login-err').style.display = 'none';
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      renderLoginState();
+      showSuccessModal(user, ()=>{
+        goToTasks();
+        toast('Welcome back, '+user+'! 👋');
+      });
+    } else {
+      $('login-err').style.display = 'block';
+      $('password').value = '';
+      $('password').focus();
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  }, 600);
+}
+
+function doLogout(){
+  loggedInUser = null;
+  localStorage.removeItem('nexus-user');
+  renderLoginState();
+  toast('Signed out successfully');
+}
+
+function goToTasks(){
+  navigateTo('home');
+  renderTasks();
+}
+
+$('login-btn').addEventListener('click', doLogin);
+$('username').addEventListener('keydown', e=>{ if(e.key==='Enter') $('password').focus(); });
+$('password').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+renderLoginState();
+
+// If already logged in and returning to the app, go straight to tasks
+if(loggedInUser){ navigateTo('home'); } else { navigateTo('login'); }
+
+// ─── Tasks ────────────────────────────────────────────────────────────────
+let tasks = ls('nexus-tasks');
+let taskFilter = 'all';
+function saveTasks(){ ls('nexus-tasks', tasks); }
+
+function renderStats(){
+  const total = tasks.length;
+  const done  = tasks.filter(t=>t.done).length;
+  const high  = tasks.filter(t=>t.priority==='high'&&!t.done).length;
+  $('task-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total</div></div>
+    <div class="stat-card"><div class="stat-num">${done}</div><div class="stat-label">Done</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--danger)">${high}</div><div class="stat-label">Urgent</div></div>`;
+}
+
+function renderTasks(){
+  renderStats();
+  const filtered = tasks.filter(t=>{
+    if(taskFilter==='active') return !t.done;
+    if(taskFilter==='done')   return  t.done;
+    if(taskFilter==='high')   return t.priority==='high'&&!t.done;
+    return true;
+  });
+  const list = $('task-list');
+  if(!filtered.length){
+    list.innerHTML = `<div class="empty-state"><span class="emoji">✅</span>Nothing here. Add a task above!</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  filtered.forEach(task=>{
+    const li = document.createElement('li');
+    li.className = 'task-item'+(task.done?' done':'');
+    const pc = {low:'p-low',mid:'p-mid',high:'p-high'}[task.priority]||'p-mid';
+    const pl = {low:'Low',mid:'Medium',high:'High'}[task.priority]||'Medium';
+    li.innerHTML = `
+      <button class="check-btn ${task.done?'checked':''}" data-id="${task.id}">${task.done?'✓':''}</button>
+      <div class="task-body">
+        <div class="task-text">${esc(task.text)}</div>
+        <div class="task-meta">${task.created}</div>
+      </div>
+      <span class="prio-badge ${pc}">${pl}</span>
+      <button class="del-btn" data-id="${task.id}" title="Delete">✕</button>`;
+    list.appendChild(li);
+  });
+  list.querySelectorAll('.check-btn').forEach(b=>b.addEventListener('click',()=>{
+    const t=tasks.find(x=>x.id===b.dataset.id);
+    if(t){ t.done=!t.done; saveTasks(); renderTasks(); }
+  }));
+  list.querySelectorAll('.del-btn').forEach(b=>b.addEventListener('click',()=>{
+    tasks=tasks.filter(x=>x.id!==b.dataset.id);
+    saveTasks(); renderTasks(); toast('Task removed');
+  }));
+}
+
+function addTask(){
+  const text = $('task-input').value.trim();
+  if(!text){ $('task-input').focus(); return; }
+  tasks.unshift({
+    id: Date.now().toString(), text, done:false,
+    priority: $('priority-select').value,
+    created: new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})
+  });
+  saveTasks(); renderTasks();
+  $('task-input').value=''; $('task-input').focus();
+  toast('Task added! ✅');
+}
+
+$('task-add-btn').addEventListener('click', addTask);
+$('task-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); });
+
+qsa('.fbtn').forEach(b=>b.addEventListener('click',()=>{
+  qsa('.fbtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  taskFilter=b.dataset.filter;
+  renderTasks();
+}));
+renderTasks();
+
+// ─── Schedule ─────────────────────────────────────────────────────────────
+let schedules = ls('nexus-schedules');
+function saveSchedules(){ ls('nexus-schedules', schedules); }
+
+function renderSchedules(){
+  const list = $('schedule-list');
+  const sorted = [...schedules].sort((a,b)=>new Date(a.date+'T'+(a.time||'00:00'))-new Date(b.date+'T'+(b.time||'00:00')));
+  if(!sorted.length){
+    list.innerHTML=`<div class="empty-state"><span class="emoji">📅</span>No events yet.</div>`;
+    return;
+  }
+  list.innerHTML='';
+  sorted.forEach(s=>{
+    const li=document.createElement('li');
+    li.className='sched-item';
+    const ds=s.date?new Date(s.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):'';
+    li.innerHTML=`
+      <div class="sched-info">
+        <div class="sched-title">${esc(s.title)}</div>
+        ${ds?`<span class="sched-date">${ds}</span>`:''}
+        ${s.time?`<span class="sched-time">${s.time}</span>`:''}
+        ${s.notes?`<div class="sched-notes">${esc(s.notes)}</div>`:''}
+      </div>
+      <button class="del-btn" data-id="${s.id}">✕</button>`;
+    list.appendChild(li);
+  });
+  list.querySelectorAll('.del-btn').forEach(b=>b.addEventListener('click',()=>{
+    schedules=schedules.filter(x=>x.id!==b.dataset.id);
+    saveSchedules(); renderSchedules(); toast('Event removed');
+  }));
+}
+
+$('sched-add-btn').addEventListener('click',()=>{
+  const title=$('s-title').value.trim();
+  if(!title){ $('s-title').focus(); return; }
+  schedules.push({id:Date.now().toString(),title,date:$('s-date').value,time:$('s-time').value,notes:$('s-notes').value.trim()});
+  saveSchedules(); renderSchedules();
+  $('s-title').value='';$('s-date').value='';$('s-time').value='';$('s-notes').value='';
+  toast('Event added! 📅');
+});
+renderSchedules();
+
+// ─── Links ────────────────────────────────────────────────────────────────
+let links = ls('nexus-links');
+let activeCat = 'all';
+function saveLinks(){ ls('nexus-links', links); }
+
+function getFavicon(url){
+  try{ return `https://www.google.com/s2/favicons?sz=32&domain=${new URL(url).hostname}`; }catch{ return null; }
+}
+function getSiteEmoji(url){
+  try{
+    const h=new URL(url).hostname;
+    const map={'github':'🐙','youtube':'▶️','twitter':'🐦','x.com':'✖️','reddit':'🤖','notion':'📝','figma':'🎨','google':'🔍','stackoverflow':'📚','linkedin':'💼','spotify':'🎵','netflix':'🎬','amazon':'📦','wikipedia':'📖','discord':'💬','slack':'💬','gmail':'📧','drive':'📁'};
+    for(const [k,v] of Object.entries(map)) if(h.includes(k)) return v;
+    return '🌐';
+  }catch{ return '🌐'; }
+}
+
+function renderCatFilter(){
+  const cats=['all',...new Set(links.map(l=>l.category).filter(Boolean))];
+  $('cat-filter').innerHTML='';
+  cats.forEach(cat=>{
+    const b=document.createElement('button');
+    b.className='fbtn'+(activeCat===cat?' active':'');
+    b.textContent=cat==='all'?'All':cat;
+    b.addEventListener('click',()=>{ activeCat=cat; renderLinks(); });
+    $('cat-filter').appendChild(b);
+  });
+}
+
+function renderLinks(){
+  renderCatFilter();
+  const filtered=activeCat==='all'?links:links.filter(l=>l.category===activeCat);
+  const grid=$('links-grid');
+  if(!filtered.length){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="emoji">🔖</span>No bookmarks yet.</div>`;
+    return;
+  }
+  grid.innerHTML='';
+  filtered.forEach(link=>{
+    const card=document.createElement('div');
+    card.className='link-card';
+    const fav=getFavicon(link.url);
+    const em=getSiteEmoji(link.url);
+    card.innerHTML=`
+      <div class="link-favicon">
+        ${fav?`<img src="${fav}" alt="" onerror="this.parentElement.textContent='${em}'" />`:`<span>${em}</span>`}
+      </div>
+      <div class="link-name">${esc(link.name)}</div>
+      <div class="link-url-text">${esc(link.url)}</div>
+      ${link.category?`<div class="link-cat-badge">${esc(link.category)}</div>`:''}
+      <button class="link-del del-btn" data-id="${link.id}" title="Remove">✕</button>`;
+    card.addEventListener('click',e=>{
+      if(e.target.classList.contains('link-del')||e.target.closest('.link-del')) return;
+      let url=link.url;
+      if(!url.startsWith('http')) url='https://'+url;
+      window.open(url,'_blank','noopener');
+    });
+    card.querySelector('.link-del').addEventListener('click',e=>{
+      e.stopPropagation();
+      links=links.filter(x=>x.id!==link.id);
+      saveLinks(); renderLinks(); toast('Bookmark removed');
+    });
+    grid.appendChild(card);
+  });
+}
+
+$('link-add-btn').addEventListener('click',()=>{
+  const name=$('link-name-input').value.trim();
+  const url=$('link-url-input').value.trim();
+  if(!name||!url){ toast('Name and URL are required!'); return; }
+  links.unshift({id:Date.now().toString(),name,url,category:$('link-cat-input').value.trim()||'General'});
+  saveLinks(); renderLinks();
+  $('link-name-input').value='';$('link-url-input').value='';$('link-cat-input').value='';
+  toast('Bookmark added! 🔖');
+});
+$('link-url-input').addEventListener('keydown',e=>{ if(e.key==='Enter') $('link-add-btn').click(); });
+
+if(!links.length){
+  links=[
+    {id:'1',name:'GitHub',url:'https://github.com',category:'Dev'},
+    {id:'2',name:'YouTube',url:'https://youtube.com',category:'Media'},
+    {id:'3',name:'Google',url:'https://google.com',category:'Search'},
+    {id:'4',name:'Reddit',url:'https://reddit.com',category:'Social'},
+    {id:'5',name:'Wikipedia',url:'https://wikipedia.org',category:'Search'},
+  ];
+  saveLinks();
+}
+renderLinks();
+</script>
+</body>
+</html>
